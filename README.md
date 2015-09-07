@@ -27,16 +27,15 @@ host & guest 的帳密都是 `ais3 / crax`
  - `crax.sh crax.s2e demo` (host)
 2. 啟動後會用 qemu 開啟一個 debian 的 vm (guest), 在 `~/sample/` 底下執行跑 `run.sh`  
  - `cd sample && ./run.sh` (guest)
- - `./sample`
 3. host 上的 **CRAX** 會開始生 exploit, exploit 會在 `~/crax/script/result/s2e-last` 底下  
  - exploit 可能會不只一個, address 較低的 exploit 比較容易成功  
- - `cd s2e-last && ls exploit*`
+ - `cd s2e-last && ls exploit*` (host)
  - _exploit-bfffe818.bin  exploit-bffff819.bin_
-4. 再次啟動 guest, 這次用一般的 qemu 啟動, 並將 exploit 傳進 guest  
- - `raw_net.sh sample.raw`
- - `scp -P2222 exploit-xxxxxxxx localhost:~/sample.exp` 
-5. 在 guest 測試 payload 是不是能成功拿到 shell  
- - `cd sample && ./sample $(cat ../sample.exp)`
+4. 用一般的 qemu 再次啟動 guest, 並將 exploit 傳進 guest  
+ - `raw_net.sh sample.raw` (host)
+ - `scp -P2222 exploit-xxxxxxxx localhost:~/sample.exp` (host)
+5. 測試 payload 是不是能成功拿到 shell  
+ - `sample/sample $(cat sample.exp)` (guest)
 
 ## lab 1-2
 **lab 1-2** 將介紹在沒辦法取得原始碼的情況下進行 symbolic execition  
@@ -46,11 +45,14 @@ host & guest 的帳密都是 `ais3 / crax`
 
 1. 開啟 vm (host) 後, 在 `~/crax/script/result` 底下啟動 **CRAX**  
  - `crax.sh crax.s2e demo` (host)
-2. 啟動後會用 qemu 開啟一個 debian 的 vm (guest), 在 `~/sample/` 底下執行跑 `run2.sh`  
+2. 啟動後會用 qemu 開啟一個 debian 的 vm (guest), 在 `~/sample/` 底下執行跑 `run2.sh`, 與 **lab 1-1** 的差別是, 這次透過 `~/wrapper` 底下的 `symarg` make symbolic 間接執行程式   
  - `cd sample && ./run2.sh` (guest)
-3. 與 **lab 1-1** 的差別是, 這次透過 `~/wrapper` 底下的 `symarg.c` make symbolic 間接執行程式   
-4. 再次啟動 guest, 這次可以直接在 snapshot 測試, 透過 s2eget 指令取得 exploit  
- - `cd s2e-last && cp exploit-xxxxxxxx ~/crax/share/sample2.exp` (host)
- - `s2eget sample2.exp`
-5. 在 guest 測試 payload 是不是能成功拿到 shell  
- - `cd sample && ./sample2 $(cat ../sample2.exp)`
+3. host 上的 **CRAX** 會開始生 exploit, exploit 會在 `~/crax/script/result/s2e-last` 底下  
+ - `cd s2e-last && ls exploit*` (host)
+ - _exploit-bfffe818.bin  exploit-bffff819.bin_
+4. 再次啟動 crax, 透過 s2eget 指令取得 exploit  
+ - `crax.sh crax.s2e demo` (host)
+ - `cp exploit-xxxxxxxx ~/crax/share/sample2.exp` (host)
+ - `s2eget sample2.exp` (guest)
+5. 測試 payload 是不是能成功拿到 shell  
+ - `sample/sample2 $(cat sample2.exp)` (guest)
