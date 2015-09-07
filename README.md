@@ -13,7 +13,7 @@
 詳細可以參考: [https://s2e.epfl.ch/](https://s2e.epfl.ch/)  
 
 * * *
-host & guest 的帳密都是 `ais3 / crax`
+host & guest 的帳密皆為 `ais3 / crax`
 * * *
 
 ## lab 1-1
@@ -50,9 +50,11 @@ host & guest 的帳密都是 `ais3 / crax`
 3. host 上的 **CRAX** 會開始生 exploit, exploit 會在 `~/crax/script/result/s2e-last` 底下  
  - `cd s2e-last && ls exploit*` (host)
  - _exploit-bfffe818.bin  exploit-bffff819.bin_
-4. 再次啟動 crax, 透過 s2eget 指令取得 exploit  
+4. 再次啟動 **CRAX**, 透過 s2eget 指令取得 exploit  
  - `crax.sh crax.s2e demo` (host)
  - `cp exploit-xxxxxxxx ~/crax/share/sample2.exp` (host)
  - `s2eget sample2.exp` (guest)
 5. 測試 payload 是不是能成功拿到 shell  
  - `sample/sample2 $(cat sample2.exp)` (guest)
+
+
