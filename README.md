@@ -28,7 +28,7 @@ host & guest 的帳密皆為 `ais3 / crax`
 2. 啟動後會用 qemu 開啟一個 debian 的 vm (guest), 在 `~/sample/` 底下執行跑 `run.sh`  
  - `cd sample && ./run.sh` (guest)
 3. host 上的 **CRAX** 會開始生 exploit, exploit 會在 `~/crax/script/result/s2e-last` 底下  
- - exploit 可能會不只一個, address 較低的 exploit 比較容易成功  
+ - exploit 可能會不只一個, width 較長的 exploit 比較容易成功  
  - `cd s2e-last && ls exploit*` (host)
  - _exploit-bfffe818.bin  exploit-bffff819.bin_
 4. 用一般的 qemu 再次啟動 guest, 並將 exploit 傳進 guest  
@@ -78,6 +78,5 @@ host & guest 的帳密皆為 `ais3 / crax`
 6. 將 payload 上傳到題目環境
  - `scp exploit-xxxxxxxx ctf@52.27.26.147:/tmp/your_dir/stage2.exp` (host)
 7. 在題目環境測試 payload 是否成功  
- - `ssh ctf@52.27.26.147`
- - `/home/stage2/stage2 $(cat /tmp/your_dir/stage2.exp)`
-
+ - `ssh ctf@52.27.26.147` (host)
+ - `/home/stage2/stage2 $(cat /tmp/your_dir/stage2.exp)` (remote)
