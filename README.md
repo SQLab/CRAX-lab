@@ -80,3 +80,17 @@ host & guest 的帳密皆為 `ais3 / crax`
 7. 在題目環境測試 payload 是否成功  
  - `ssh ctf@52.27.26.147` (host)
  - `/home/stage2/stage2 $(cat /tmp/your_dir/stage2.exp)` (remote)
+
+## Appendix
+前面的 lab 為了節省時間, 因此直接在已經建好 snapshot 的狀況下進行  
+這邊補上完整的 s2e 操作流程:
+
+0. 從 github 上下載 s2e (or CRAX) source, 到 `repo/qemu/` 底下編譯  
+1. 建立 qemu img, 並安裝 guest os  
+2. 用 s2e 編譯過的 qemu 開啟 guest, 並將受測程式上傳到 guest 並建置測試環境  
+ - 建議加上 -net 參數方便傳檔及安裝軟體
+3. 將剛才的 image 複製一份並以 `.s2e` 做結尾, 再次用 qemu 開啟 guest, 用 qemu 建立 snapshot
+ - **此步驟不能加上 -net 參數**  
+4. 用 s2e 模式開啟剛剛的 snapshot, 執行受測程式或 wrapper, 測試結果會在 `s2e-out-n` 底下  
+5. 如果受測程式本身有 make symbolic, 需用 qemu 啟動 guest 並測試
+6. 如果 image 被更動, 須重新建立 snapshot
