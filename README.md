@@ -1,7 +1,7 @@
 # CRAX lab
 **CRAX** 是 SQLab 所發展的 Automatic Exploit Generator (AEG)  
 **CRAX** 的原理是透過 symbolic execution 判斷 eip 是否能被 input tainted  
-如果一旦偵測到被 tainted 到  
+如果一旦偵測到 eip tainted   
 會將目前收集到的 path constraint 加上 shellcode constraint  
 以 SMT solver 嘗試去解可能的 input  
 
@@ -18,7 +18,7 @@ host & guest 的帳密皆為 `ais3 / crax`
 
 ## lab 1-1
 **lab 1-1** 將介紹利用 **s2e** 提供的 api 對程式 make symbolic 的流程  
-[sample.c](http://123.tw) 是一個很簡單的 buffer overflow 的小程式  
+[sample.c](https://github.com/SQLab/CRAX-lab/blob/master/sample/sample.c) 是一個很簡單的 buffer overflow 的小程式  
 其中第 12 行 `s2e_make_concolic` 將對某一段 buffer make symbolic  
 當 guest 執行到第 12 行就會開始進行 symbolic execution, 直到程式結束  
 本實驗將展示透過 **CRAX** 自動去生成 shellcode  
@@ -39,7 +39,7 @@ host & guest 的帳密皆為 `ais3 / crax`
 
 ## lab 1-2
 **lab 1-2** 將介紹在沒辦法取得原始碼的情況下進行 symbolic execition  
-[sample2.c](http://123.tw) 與 sample.c 基本上一模一樣, 除了少 `s2e_make_concolic` 那一行  
+[sample2.c](https://github.com/SQLab/CRAX-lab/blob/master/sample/sample2.c) 與 sample.c 基本上一模一樣, 除了少 `s2e_make_concolic` 那一行  
 本實驗將透過 symbolic wrapper 對受測程式做 symbolic  
 
 1. 開啟 vm (host) 後, 在 `~/crax/script/result` 底下啟動 **CRAX**  
@@ -58,7 +58,7 @@ host & guest 的帳密皆為 `ais3 / crax`
 
 ## lab 1-3
 *lab 1-3* 將使用 **CRAX** 測試 AIS3 Day 2 的練習題 **easy pwn**  
-[stage2](http://123.tw) 是 **Defcon quals circa 2004** 的題目  
+[stage2](https://github.com/SQLab/CRAX-lab/blob/master/sample/stage2) 是 **Defcon quals circa 2004** 的題目  
 本實驗將使用 **CRAX** 自動生出 **easy pwn** 的 payload  
 
 1. 開啟 vm (host) 後, 在 `~/crax/script/result` 底下啟動 **CRAX**  
@@ -81,16 +81,25 @@ host & guest 的帳密皆為 `ais3 / crax`
  - `ssh ctf@52.27.26.147` (host)
  - `/home/stage2/stage2 $(cat /tmp/your_dir/stage2.exp)` (remote)
 
-## Appendix
+## Appendix A
 前面的 lab 為了節省時間, 因此直接在已經建好 snapshot 的狀況下進行  
-這邊補上完整的 s2e 操作流程:
+本小節補上完整的 s2e 操作流程:
 
 0. 從 github 上下載 s2e (or CRAX) source, 到 `repo/qemu/` 底下編譯  
 1. 建立 qemu img, 並安裝 guest os  
 2. 用 s2e 編譯過的 qemu 開啟 guest, 並將受測程式上傳到 guest 並建置測試環境  
  - 建議加上 -net 參數方便傳檔及安裝軟體
 3. 將剛才的 image 複製一份並以 `.s2e` 做結尾, 再次用 qemu 開啟 guest, 用 qemu 建立 snapshot
- - **此步驟不能加上 -net 參數**  
+ - **此步驟不能加上 -net 參數**, 否則 qemu 會因為多一張網卡而噴錯...  
 4. 用 s2e 模式開啟剛剛的 snapshot, 執行受測程式或 wrapper, 測試結果會在 `s2e-out-n` 底下  
 5. 如果受測程式本身有 make symbolic, 需用 qemu 啟動 guest 並測試
 6. 如果 image 被更動, 須重新建立 snapshot
+
+## Appendix B
+CRAX 在 windows 的實驗環境建置步驟因硬碟爆炸已不可考...  
+只好附上當時的光榮影片 (?)  
+實驗環境是用 qemu 跑 windows XP  
+受測程式是 Microsoft word 處理 XML 格式造成的 stack overflow -- **CVE-2010-3333**  
+影片中用 python 處理 host 繁瑣的步驟  
+在 guest 使用 wscript 自動生成 exploit  
+[CRAX demo](https://www.youtube.com/watch?v=nkB18SSx6_I)  
