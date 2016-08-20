@@ -43,7 +43,7 @@ Host OS 與 Guest OS 的帳密皆為 `ais3 / crax`
 `~/crax/script`  
 
 1. `start.sh`：以 S2E mode 的 QEMU 開啟 Guest OS。  
-2. 
+
 2. `exploit.sh`：symbolic execution 結束後將 exploit 檔案傳入 Guest OS。以 non-S2E mode 的 QEMU 開啟 Guest OS，並將 Host OS ssh 的 22 port 導至 Guest OS 的 2222 port。  
 
 `~/crax/result`：存放 symbolic execution 結束後的過程紀錄與結果。每結束一次 symbolic execution 就會將最新的紀錄都存放於 `s2e-last` 中。  
