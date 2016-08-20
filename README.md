@@ -1,106 +1,106 @@
-# CRAX lab
-[CRAX](https://github.com/SQLab/CRAX)  
-**CRAX** 是 SQLab 所發展的 Automatic Exploit Generator (AEG)  
-**CRAX** 的原理是透過 symbolic execution 判斷 eip 是否能被 input tainted  
-如果一旦偵測到 eip tainted   
-會將目前收集到的 path constraint 加上 shellcode constraint  
-以 SMT solver 嘗試去解可能的 input  
+﻿# AIS3 CRAX lab
 
-**CRAX** 採用的 symbolic execution engine 是基於 KLEE 更改來的 **s2e**  
-**s2e** 是 **select symbolic execution** 的縮寫  
-只對特定的程式區間做 symbolic execution  
-改進 symbolic exection 指數成長的缺點  
-可以支援 x86, x64, arm 平台  
-詳細可以參考: [https://s2e.epfl.ch/](https://s2e.epfl.ch/)  
+[CRAX](https://github.com/SQLab/CRAX) 是 SQLab 所發展的 Automatic Exploit Generator (AEG)，利用 symbolic execution 為基礎，對受測程式進行動態分析。
 
-* * *
-host & guest 的帳密皆為 `ais3 / crax`
-* * *
+## 原理
+在 symbolic execution 執行中 判斷 eip 是否可由 input 控制，當偵測到 eip 可控( eip tainted )，則將目前收集到的 path constraint(路徑限制式) 加上 shellcode constraint 以 SMT solver 嘗試去解可能的 input。
 
-## lab 1-1
-**lab 1-1** 將介紹利用 **s2e** 提供的 api 對程式 make symbolic 的流程  
-[sample.c](https://github.com/SQLab/CRAX-lab/blob/master/sample/sample.c) 是一個很簡單的 buffer overflow 的小程式  
-其中第 12 行 `s2e_make_concolic` 將對某一段 buffer make symbolic  
-當 guest 執行到第 12 行就會開始進行 symbolic execution, 直到程式結束  
-本實驗將展示透過 **CRAX** 自動去生成 shellcode  
+由於 symbolic execution 會探索程式執行的所有可能路徑，時間複雜度成指數成長，當受測程式規模大時會使執行效率較差。
 
-1. 開啟 vm (host) 後, 在 `~/crax/script/result` 底下啟動 **CRAX**  
- - `crax.sh crax.s2e demo` (host)
-2. 啟動後會用 qemu 開啟一個 debian 的 vm (guest), 在 `~/sample/` 底下執行跑 `run.sh`  
- - `cd sample && ./run.sh` (guest)
-3. host 上的 **CRAX** 會開始生 exploit, exploit 會在 `~/crax/script/result/s2e-last` 底下  
- - exploit 可能會不只一個, width 較長的 exploit 比較容易成功  
- - `cd s2e-last && ls exploit*` (host)
- - _exploit-bfffe818.bin  exploit-bffff819.bin_
-4. 用一般的 qemu 再次啟動 guest, 並將 exploit 傳進 guest  
- - `raw_net.sh sample.raw` (host)
- - `scp -P2222 exploit-xxxxxxxx localhost:~/sample.exp` (host)
-5. 測試 payload 是不是能成功拿到 shell  
- - `sample/sample $(cat sample.exp)` (guest)
+**CRAX** 採用的 symbolic execution engine 是基於 KLEE 更改來的 **S2E**。
 
-## lab 1-2
-**lab 1-2** 將介紹在沒辦法取得原始碼的情況下進行 symbolic execition  
-[sample2.c](https://github.com/SQLab/CRAX-lab/blob/master/sample/sample2.c) 與 sample.c 基本上一模一樣, 除了少 `s2e_make_concolic` 那一行  
-本實驗將透過 symbolic wrapper 對受測程式做 symbolic  
+**S2E** 是 select symbolic execution 的縮寫，只對特定的程式區間做 symbolic execution，即 *concolic execution*，以一組隨機的輸入作為初始值開始執行。
 
-1. 開啟 vm (host) 後, 在 `~/crax/script/result` 底下啟動 **CRAX**  
- - `crax.sh crax.s2e demo` (host)
-2. 啟動後會用 qemu 開啟一個 debian 的 vm (guest), 在 `~/sample/` 底下執行跑 `run2.sh`, 與 **lab 1-1** 的差別是, 這次透過 `~/wrapper` 底下的 `symarg` make symbolic 間接執行程式   
- - `cd sample && ./run2.sh` (guest)
-3. host 上的 **CRAX** 會開始生 exploit, exploit 會在 `~/crax/script/result/s2e-last` 底下  
- - `cd s2e-last && ls exploit*` (host)
- - _exploit-bfffe818.bin  exploit-bffff819.bin_
-4. 再次啟動 **CRAX**, 透過 s2eget 指令取得 exploit  
- - `crax.sh crax.s2e demo` (host)
- - `cp exploit-xxxxxxxx ~/crax/share/sample2.exp` (host)
- - `s2eget sample2.exp` (guest)
-5. 測試 payload 是不是能成功拿到 shell  
- - `sample/sample2 $(cat sample2.exp)` (guest)
+## CRAX 架構
 
-## lab 1-3
-*lab 1-3* 將使用 **CRAX** 測試 AIS3 Day 2 的練習題 **easy pwn**  
-[stage2](https://github.com/SQLab/CRAX-lab/blob/master/sample/stage2) 是 **Defcon quals circa 2004** 的題目  
-本實驗將使用 **CRAX** 自動生出 **easy pwn** 的 payload  
+Host OS(S2E) 執行 symbolic execution，使用 QEMU 建置 Guest OS 以測試位於各種不同環境上的程式。
+S2E 以 API 或允許使用者自訂的 op code(由 S2E 基於它自己的 QEMU 所定義的 machine code) 在 Host OS 和 Guest OS 之間溝通。
 
-1. 開啟 vm (host) 後, 在 `~/crax/script/result` 底下啟動 **CRAX**  
- - `crax.sh crax.s2e demo` (host)
-2. 啟動後會用 qemu 開啟一個 debian 的 vm (guest), 在 `~/easy_pwn/` 底下執行跑 `run.sh`  
- - `cd easy_pwn && ./run.sh` (guest)
-3. host 上的 **CRAX** 會開始生 exploit, exploit 會在 `~/crax/script/result/s2e-last` 底下  
- - exploit 可能會不只一個, address 較低的 exploit 比較容易成功  
- - `cd s2e-last && ls exploit*` (host)
- - _exploit-bfffede4.bin  exploit-bffffde5.bin_
-4. 再次啟動 **CRAX**, 透過 s2eget 指令取得 exploit  
- - `crax.sh crax.s2e demo` (host)
- - `cp exploit-xxxxxxxx ~/crax/share/stage2.exp` (host)
- - `s2eget stage2.exp` (guest)
-5. 測試 payload 是不是能成功拿到 shell  
- - `easy_pwn/stage2 $(cat stage2.exp)` (guest)
-6. 將 payload 上傳到題目環境
- - `scp exploit-xxxxxxxx ctf@52.27.26.147:/tmp/your_dir/stage2.exp` (host)
-7. 在題目環境測試 payload 是否成功  
- - `ssh ctf@52.27.26.147` (host)
- - `/home/stage2/stage2 $(cat /tmp/your_dir/stage2.exp)` (remote)
+## CRAX lab 介紹
+---
+Host OS 與 Guest OS 的帳密皆為 `ais3 / crax`
 
-## Appendix A
-前面的 lab 為了節省時間, 因此直接在已經建好 snapshot 的狀況下進行  
-本小節補上完整的 s2e 操作流程:
+---
 
-0. 從 github 上下載 s2e (or CRAX) source, 到 `repo/qemu/` 底下編譯  
-1. 建立 qemu img, 並安裝 guest os  
-2. 用 s2e 編譯過的 qemu 開啟 guest, 並將受測程式上傳到 guest 並建置測試環境  
- - 建議加上 -net 參數方便傳檔及安裝軟體
-3. 將剛才的 image 複製一份並以 `.s2e` 做結尾, 再次用 qemu 開啟 guest, 用 qemu 建立 snapshot
- - **此步驟不能加上 -net 參數**, 否則 qemu 會因為多一張網卡而噴錯...  
-4. 用 s2e 模式開啟剛剛的 snapshot, 執行受測程式或 wrapper, 測試結果會在 `s2e-out-n` 底下  
-5. 如果受測程式本身有 make symbolic, 需用 qemu 啟動 guest 並測試
-6. 如果 image 被更動, 須重新建立 snapshot
+### Host OS (Ubuntu 12.04 64-bit)
+`ais3@ubuntu:`
+`~/crax/build` **CRAX** 的環境建置
+`~/crax/s2e`   由 [CRAX](https://github.com/SQLab/CRAX) 中下載的 source code，詳細編譯方式參考：https://s2e.epfl.ch/
+`~/crax/img` 
+1. `crax.raw`：Guest OS image，已放置受測程式。
+2. `crax.s2e`：S2E 需以 .s2e 為副檔名的 image 做 symbolic execution，其與 crax.raw 內容相同。
+3. `crax.s2e.demo`：crax.s2e 的 snapshot(snapshot 取名為 demo 即會產生以 .demo 結尾的檔案)。S2E QEMU 開啟此 snapshot 並開始執行 symbolic execution。
+(參考：[The S2E VM Image Format](https://github.com/dslab-epfl/s2e/blob/master/docs/ImageInstallation.rst#id2))
+4. `crax.qcow2`：用來將 Host OS symbolic execution 後產生的 exploit 檔案傳入 Guest OS 進行 exploit 的 image。(由於 crax.raw 更動過後 crax.s2e 會毀壞，因此不能將 exploit 傳入 crax.raw)
 
-## Appendix B
-CRAX 在 windows 的實驗環境建置步驟因硬碟爆炸已不可考...  
-只好附上當時的光榮影片 (?)  
-實驗環境是用 qemu 跑 windows XP  
-受測程式是 Microsoft word 處理 XML 格式造成的 stack overflow -- **CVE-2010-3333**  
-影片中用 python 處理 host 繁瑣的步驟  
-在 guest 使用 wscript 自動生成 exploit  
-[CRAX demo](https://www.youtube.com/watch?v=nkB18SSx6_I)  
+`~/crax/script`
+1. `start.sh`：以 S2E mode 的 QEMU 開啟 Guest OS。
+2. `exploit.sh`：symbolic execution 結束後將 exploit 檔案傳入 Guest OS。以 non-S2E mode 的 QEMU 開啟 Guest OS，並將 Host OS ssh 的 22 port 導至 Guest OS 的 2222 port。
+
+`~/crax/result`：存放 symbolic execution 結束後的過程紀錄與結果。每結束一次 symbolic execution 就會將最新的紀錄都存放於 `s2e-last` 中。
+
+### Guest OS (Debian 32-bit)
+`ais@debian:`
+`~/sample`：lab1、2 受測程式與執行的 script。
+`~/easy_pwn`：lab3 受測程式與執行的 script。
+`~/wrapper`：在無法取得原始碼的情況下，以 wrapper 控制 input 為 symbolic variable。
+
+## CRAX lab 實作
+請開 AIS3_CRAX 資料夾先用 VMware 裝好 vm (只能用 VMware 開唷~)
+
+### lab 1
+**lab 1** 將介紹利用 S2E 提供的 API 對程式 make symbolic 的流程
+[sample.c](https://github.com/SQLab/CRAX-lab/blob/master/sample/sample.c) 是一個很簡單的 buffer overflow 的小程式
+其中第 12 行 `s2e_make_concolic` 將對某一段 buffer make symbolic
+當 Guest OS 執行到第 12 行就會開始進行 symbolic execution，直到程式結束
+本實驗將展示透過 CRAX 自動生成 exploit
+1. 開啟 Host 後， 在 `ais@ubuntu:~/crax/result` 底下啟動 Guest
+	* (Host) `start.sh crax.s2e` -- 以 S2E mode 的 QEMU 開啟 crax.s2e 的 demo snapshot。
+2. 開啟 Guest 後，在 `ais3@debian:~/sample` 底下執行 `run.sh` 
+	* (Guest) `./run.sh` -- 編譯受測程式，輸入 0x1000 個 a 作為 concrete input 執行程式。
+3. Host 上的 **CRAX** 會開始進行 symbolic execution 嘗試解出 exploit，exploit 會在 `~/crax/result/s2e-last` 底下
+	* exploit 可能會不只一個，width 較長的 exploit 比較容易成功。
+	* (Host) `cd s2e-last && ls exploit`
+	* _exploit-bfffe818.bin_ & _exploit-bffff819.bin_
+4. 啟動 Guest，並將 exploit 傳進 Guest
+	* (Host) `exploit.sh crax.qcow2`
+	* (Host 用另一個 terminal) 
+		* `~/crax/result/s2e-last$ scp -P2222 exploit-xxxxxxxx localhost:~/sample.exp`
+5. 測試 payload 是不是能成功拿到 shell
+	* (Guest) `sample/sample $(cat sample.exp)`
+
+### lab 2
+**lab 2** 將介紹在沒辦法取得原始碼的情況下進行 symbolic execition
+[sample2.c](https://github.com/SQLab/CRAX-lab/blob/master/sample/sample2.c) 與 sample.c 基本上一模一樣，除了少 s2e_make_concolic 那一行
+本實驗將透過 symbolic wrapper 對受測程式做 symbolic
+1. 開啟 Host 後， 在 `ais@ubuntu:~/crax/result` 底下啟動 Guest
+	* (Host) `start.sh crax.s2e` -- 以 S2E mode 的 QEMU 開啟 crax.s2e 的 demo snapshot。
+2. 開啟 Guest 後，在 `ais3@debian:~/sample` 底下執行 `run2.sh` 
+	* (Guest) `./run2.sh` -- 以 wrapper 執行程式。
+3. Host 上的 **CRAX** 會開始進行 symbolic execution 嘗試解出 exploit，exploit 會在 `~/crax/result/s2e-last` 底下
+	* (Host) `cd s2e-last && ls exploit`
+	* _exploit-bfffe818.bin_ & _exploit-bffff819.bin_
+4. 啟動 Guest，並將 exploit 傳進 Guest
+	* (Host) `exploit.sh crax.qcow2`
+	* (Host 用另一個 terminal) 
+		* `~/crax/result/s2e-last$ scp -P2222 exploit-xxxxxxxx localhost:~/sample2.exp`
+5. 測試 payload 是不是能成功拿到 shell
+	* (Guest) `sample/sample2 $(cat sample2.exp)`
+
+### lab 3
+[stage2](https://github.com/SQLab/CRAX-lab/blob/master/sample/stage2) 是 Defcon quals circa 2004 的題目
+本實驗將使用 CRAX 自動生成 stage2 的 payload
+1. 開啟 Host 後， 在 `ais@ubuntu:~/crax/result` 底下啟動 Guest
+	* (Host) `start.sh crax.s2e` -- 以 S2E mode 的 QEMU 開啟 crax.s2e 的 demo snapshot。
+2. 開啟 Guest 後，在 `ais3@debian:~/easy_pwn` 底下執行 `run.sh` 
+	* (Guest) `./run.sh` -- 以 wrapper 執行程式。
+3. Host 上的 **CRAX** 會開始進行 symbolic execution 嘗試解出 exploit，exploit 會在 `~/crax/result/s2e-last` 底下
+	* exploit 可能會不只一個，address 較低的 exploit 比較容易成功。
+	* (Host) `cd s2e-last && ls exploit`
+	* _exploit-bfffede4.bin_ & _exploit-bffffde5.bin_
+4. 啟動 Guest，並將 exploit 傳進 Guest
+	* (Host) `exploit.sh crax.qcow2`
+	* (Host 用另一個 terminal) 
+		* `~/crax/result/s2e-last$ scp -P2222 exploit-xxxxxxxx localhost:~/stage2.exp`
+5. 測試 payload 是不是能成功拿到 shell
+	* (Guest) `easy_pwn/stage2 $(cat stage2.exp)`
