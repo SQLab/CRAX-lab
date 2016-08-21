@@ -75,7 +75,7 @@ Host OS 與 Guest OS 的帳密皆為 `ais3 / crax`
 
 3. Host 上的 **CRAX** 會開始進行 symbolic execution 嘗試解出 exploit，exploit 會在 `~/crax/result/s2e-last` 底下  
 	* exploit 可能會不只一個，width 較長的 exploit 比較容易成功。  
-	* (Host) `cd s2e-last && ls exploit`  
+	* (Host) `cd s2e-last && ls exploit*`  
 	* _exploit-bfffe818.bin_ & _exploit-bffff819.bin_  
 
 4. 啟動 Guest，並將 exploit 傳進 Guest  
@@ -98,7 +98,7 @@ Host OS 與 Guest OS 的帳密皆為 `ais3 / crax`
 	* (Guest) `./run2.sh` -- 以 wrapper 執行程式。  
 
 3. Host 上的 **CRAX** 會開始進行 symbolic execution 嘗試解出 exploit，exploit 會在 `~/crax/result/s2e-last` 底下  
-	* (Host) `cd s2e-last && ls exploit`  
+	* (Host) `cd s2e-last && ls exploit*`  
 	* _exploit-bfffe818.bin_ & _exploit-bffff819.bin_  
 
 4. 啟動 Guest，並將 exploit 傳進 Guest  
@@ -121,7 +121,7 @@ Host OS 與 Guest OS 的帳密皆為 `ais3 / crax`
 
 3. Host 上的 **CRAX** 會開始進行 symbolic execution 嘗試解出 exploit，exploit 會在 `~/crax/result/s2e-last` 底下  
 	* exploit 可能會不只一個，address 較低的 exploit 比較容易成功。  
-	* (Host) `cd s2e-last && ls exploit`  
+	* (Host) `cd s2e-last && ls exploit*`  
 	* _exploit-bfffede4.bin_ & _exploit-bffffde5.bin_  
 
 4. 啟動 Guest，並將 exploit 傳進 Guest  
